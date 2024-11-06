@@ -1,0 +1,42 @@
+.custom-file-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #007bff; /* Change this color to match your theme */
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .custom-file-upload:hover {
+    background-color: #f8f9fa; /* Light background on hover */
+  }
+  
+  .file-upload-input {
+    display: none; /* Hide the default file input */
+  }
+  
+  .file-upload-label {
+    font-size: 16px;
+    color: #007bff; /* Change this color to match your theme */
+  }
+  
+  .preview-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%; /* Make it circular */
+    object-fit: cover; /* Maintain aspect ratio */
+    border: 1px solid #007bff; /* Change this color to match your theme */
+    margin-bottom: 10px; /* Space between image and label */
+    align-self: center;
+  }
+  .drag-drop-container {
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+  }
+  
