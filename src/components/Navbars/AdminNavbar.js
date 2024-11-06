@@ -35,6 +35,7 @@ import {
   Media,
 } from "reactstrap";
 import { setSearchValue } from "../../redux/initSlice";
+import { BASE_URL } from "utils";
 
 const AdminNavbar = (props) => {
   const {
@@ -63,6 +64,7 @@ const AdminNavbar = (props) => {
                 </InputGroupAddon>
                 <Input
                   onChange={(event) => {
+                    console.log(imageBase64);
                     const value = event.target.value; // Get the changed value
                     dispatch(setSearchValue(value)); // Dispatch to Redux if needed
                     console.log(value); // Log the value for testing
@@ -78,7 +80,12 @@ const AdminNavbar = (props) => {
               <DropdownToggle className="pr-0" nav>
                 <Media className="align-items-center">
                   <span className="avatar avatar-sm rounded-circle">
-                    <img alt="..." src={imageBase64 || imageUrl} />
+                    <img
+                      alt="..."
+                      src={`${
+                        imageBase64 ? imageBase64 : `${BASE_URL}${imageUrl}`
+                      }?t=${new Date().getTime()}`}
+                    />
                   </span>
                   <Media className="ml-2 d-none d-lg-block">
                     <span className="mb-0 text-sm font-weight-bold">
@@ -89,28 +96,17 @@ const AdminNavbar = (props) => {
               </DropdownToggle>
               <DropdownMenu className="dropdown-menu-arrow" right>
                 <DropdownItem className="noti-title" header tag="div">
-                  <h6 className="text-overflow m-0">Welcome!</h6>
+                  <h6 className="text-overflow m-0">Καλώς ήρθες!</h6>
                 </DropdownItem>
                 <DropdownItem to="/admin/user-profile" tag={Link}>
                   <i className="ni ni-single-02" />
-                  <span>My profile</span>
+                  <span>Το προφίλ μου</span>
                 </DropdownItem>
-                <DropdownItem to="/admin/user-profile" tag={Link}>
-                  <i className="ni ni-settings-gear-65" />
-                  <span>Settings</span>
-                </DropdownItem>
-                <DropdownItem to="/admin/user-profile" tag={Link}>
-                  <i className="ni ni-calendar-grid-58" />
-                  <span>Activity</span>
-                </DropdownItem>
-                <DropdownItem to="/admin/user-profile" tag={Link}>
-                  <i className="ni ni-support-16" />
-                  <span>Support</span>
-                </DropdownItem>
+
                 <DropdownItem divider />
-                <DropdownItem href="#pablo" onClick={(e) => e.preventDefault()}>
+                <DropdownItem to="/auth/login">
                   <i className="ni ni-user-run" />
-                  <span>Logout</span>
+                  <span>Αποσύνδεση</span>
                 </DropdownItem>
               </DropdownMenu>
             </UncontrolledDropdown>

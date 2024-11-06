@@ -41,37 +41,122 @@ import {
   setEmail,
   setFirstName,
   setLastName,
+  setNewImage,
   setPhone,
   setPostalCode,
   setUsername,
 } from "../../redux/initSlice";
-
+import { BASE_URL } from "utils";
+import { FileUploader } from "react-drag-drop-files";
+import { toast } from "react-toastify";
+import { useEffect } from "react";
 const Profile = () => {
   const dispatch = useDispatch();
   const {
     userData,
-    userData: { firstName, lastName, imageBase64 },
+    userData: { email, imageUrl, imageBase64 },
   } = useSelector((state) => state.initReducer);
 
+  console.log({ userData });
+  useEffect(() => {
+    // Fetch business data when component mounts or email changes
+    const fetchBusinessData = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}business?email=${email}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          if (data.businessData) {
+            // If business data exists, dispatch it to the Redux store
+            dispatch(setAddress(data.businessData.address));
+            dispatch(setCity(data.businessData.city));
+            dispatch(setCountry(data.businessData.country));
+            dispatch(setPostalCode(data.businessData.postCode));
+            dispatch(setAboutBusiness(data.businessData.about));
+          } else {
+            // If no business data exists, you can set default values
+          }
+        } else {
+          toast.error(data.message || "Error fetching business data");
+        }
+      } catch (error) {
+        toast.error("Error fetching business data");
+        console.error("Error fetching business data:", error);
+      }
+    };
+
+    fetchBusinessData();
+  }, [email, dispatch]);
+
+  const convertImageToBase64 = async (file) => {
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        updateImage(reader.result);
+        resolve();
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const updateImage = async (imageBase64) => {
+    try {
+      const response = await fetch(`${BASE_URL}update/avatar`, {
+        // Adjust URL to your backend route
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, avatar: imageBase64 }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        dispatch(setNewImage(data.avatarUrl));
+      } else {
+        console.error(
+          "Error updating profile:",
+          data.message || "Unknown error"
+        );
+      }
+    } catch (error) {
+      console.error("Error during profile update:", error);
+    }
+  };
+
   const onSubmit = async () => {
-    console.log({ userData });
-    return;
+    const payload = {
+      email: userData.email,
+      phone: userData.phone,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      address: userData.address,
+      city: userData.city,
+      country: userData.country,
+      postalCode: userData.postalCode,
+      aboutBusiness: userData.aboutBusiness,
+    };
 
-    // try {
-    //   const response = await fetch("https://your-backend-url/api/register", {
-    //     method: "POST",
-    //     body: formData,
-    //   });
-    //   const data = await response.json();
+    try {
+      const response = await fetch(`${BASE_URL}update/adminData`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    //   if (response.ok) {
-    //     // Handle successful registration
-    //   } else {
-    //     // Handle errors
-    //   }
-    // } catch (error) {
-    //   console.error("Error during registration:", error);
-    // }
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message);
+      } else {
+        console.error(
+          "Error updating profile:",
+          data.message || "Unknown error"
+        );
+      }
+    } catch (error) {
+      console.error("Error during profile update:", error);
+    }
   };
 
   return (
@@ -82,20 +167,27 @@ const Profile = () => {
         <Row>
           <Col className="order-xl-2 mb-5 mb-xl-0" xl="4">
             <Card className="card-profile shadow">
-              <Row className="justify-content-center">
-                <Col className="order-lg-2" lg="3">
-                  <div className="card-profile-image">
-                    <a href="#pablo" onClick={(e) => e.preventDefault()}>
-                      <img
-                        alt="..."
-                        className="rounded-circle"
-                        src={imageBase64}
-                      />
-                    </a>
-                  </div>
-                </Col>
-              </Row>
-
+              <FileUploader
+                handleChange={convertImageToBase64}
+                name="file"
+                types={["JPG", "PNG"]}
+              >
+                <Row className="justify-content-center">
+                  <Col className="order-lg-2" lg="3">
+                    <div className="card-profile-image">
+                      <a href="#pablo" onClick={(e) => e.preventDefault()}>
+                        <img
+                          alt="..."
+                          className="rounded-circle"
+                          src={`${
+                            imageBase64 ? imageBase64 : `${BASE_URL}${imageUrl}`
+                          }?t=${new Date().getTime()}`}
+                        />
+                      </a>
+                    </div>
+                  </Col>
+                </Row>
+              </FileUploader>
               <CardBody className="pt-0 pt-md-4">
                 <div className="text-center">
                   <div style={{ height: 140 }} />

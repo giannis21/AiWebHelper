@@ -28,8 +28,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(email, password);
-    navigate("admin/index");
-    return;
+
     if (!email || !password) {
       toast.error("Παρακαλώ συμπληρώστε όλα τα πεδία!");
       return;
@@ -49,7 +48,6 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        console.log(JSON.stringify(data));
         dispatch(
           setUserData({
             firstName: data.user.name,
@@ -60,9 +58,8 @@ const Login = () => {
             imageUrl: data.user.avatar,
           })
         );
-        // Redirect to home or the desired page
+        navigate("/admin/index");
       } else {
-        // Handle failed login attempt
         toast.error(data.message || "Σφάλμα κατά τη σύνδεση!");
       }
     } catch (error) {
@@ -145,12 +142,7 @@ const Login = () => {
           </CardBody>
         </Card>
         <Row className="mt-3">
-          <Col xs="6">
-            <NavLink to="/auth/forgot-password" className="text-light">
-              <small>Ξέχασες τον κωδικό σου?</small>
-            </NavLink>
-          </Col>
-          <Col className="text-right" xs="6">
+          <Col className="text-right">
             {/* Link to Register page */}
             <NavLink to="/auth/register" className="text-light">
               <small>Δημιουργία νέου λογαριασμού</small>

@@ -21,6 +21,13 @@ export const initSlice = createSlice({
     setUserData: (state, action) => {
       state.userData = action.payload;
     },
+    setNewImage: (state, action) => {
+      state.userData = {
+        ...state.userData,
+        imageUrl: action.payload,
+      };
+    },
+
     setUsers: (state, action) => {
       state.users = action.payload;
     },
@@ -96,6 +103,7 @@ export const {
   addUser,
   removeUser,
   updateUserStatus,
+  setNewImage,
 } = initSlice.actions;
 
 export default initSlice.reducer;

@@ -12,10 +12,12 @@ import {
   Input,
   Spinner,
 } from "reactstrap";
+import { NavLink, useNavigate } from "react-router-dom"; // Import NavLink and useNavigate
+
 import { useState } from "react";
 import { FileUploader } from "react-drag-drop-files";
 import "../../assets/css/Register.css";
-import { useNavigate } from "react-router-dom";
+
 import { useDispatch } from "react-redux";
 import { setUserData } from "../../redux/initSlice";
 import { BASE_URL } from "utils";
@@ -286,6 +288,14 @@ const Register = () => {
             </Form>
           </CardBody>
         </Card>
+        <Row className="mt-3">
+          <Col className="text-right">
+            {/* Link to Register page */}
+            <NavLink to="/auth/login" className="text-light">
+              <small>Είσοδος</small>
+            </NavLink>
+          </Col>
+        </Row>
       </Col>
     </>
   );

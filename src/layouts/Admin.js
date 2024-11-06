@@ -16,7 +16,13 @@
 
 */
 import React from "react";
-import { useLocation, Route, Routes, Navigate } from "react-router-dom";
+import {
+  useLocation,
+  Route,
+  Routes,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
 // reactstrap components
 import { Container } from "reactstrap";
 // core components
@@ -24,11 +30,20 @@ import AdminNavbar from "components/Navbars/AdminNavbar.js";
 import AdminFooter from "components/Footers/AdminFooter.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
 
-import routes from "routes.js";
+import routesSideBar from "routesSideBar.js";
+import { useSelector } from "react-redux";
 
 const Admin = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { userData } = useSelector((state) => state.initReducer);
+
+  React.useEffect(() => {
+    if (!userData?.email) {
+      navigate("/");
+    }
+  }, [userData, navigate]);
 
   React.useEffect(() => {
     document.documentElement.scrollTop = 0;
@@ -49,12 +64,13 @@ const Admin = (props) => {
   };
 
   const getBrandText = (path) => {
-    for (let i = 0; i < routes.length; i++) {
+    for (let i = 0; i < routesSideBar.length; i++) {
       if (
-        props?.location?.pathname.indexOf(routes[i].layout + routes[i].path) !==
-        -1
+        props?.location?.pathname.indexOf(
+          routesSideBar[i].layout + routesSideBar[i].path
+        ) !== -1
       ) {
-        return routes[i].name;
+        return routesSideBar[i].name;
       }
     }
     return "Brand";
@@ -64,7 +80,7 @@ const Admin = (props) => {
     <>
       <Sidebar
         {...props}
-        routes={routes}
+        routes={routesSideBar}
         logo={{
           innerLink: "/admin/index",
           imgSrc: require("../assets/img/brand/argon-react.png"),
@@ -77,7 +93,7 @@ const Admin = (props) => {
           brandText={getBrandText(props?.location?.pathname)}
         />
         <Routes>
-          {getRoutes(routes)}
+          {getRoutes(routesSideBar)}
           <Route path="*" element={<Navigate to="/admin/index" replace />} />
         </Routes>
         <Container fluid>
