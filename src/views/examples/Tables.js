@@ -43,7 +43,15 @@ import FormDialog from "components/modals/FormDialog";
 import React, { useEffect } from "react";
 import ConfirmationDialog from "components/modals/ConfirmationDialog";
 import { useDispatch, useSelector } from "react-redux";
-import { addUser, removeUser, updateUserStatus } from "../../redux/initSlice";
+import {
+  addUser,
+  removeUser,
+  updateUserStatus,
+  setStaff,
+  editUser,
+} from "../../redux/initSlice";
+import { BASE_URL } from "utils";
+import { toast } from "react-toastify";
 
 const Tables = () => {
   const dispatch = useDispatch();
@@ -51,39 +59,41 @@ const Tables = () => {
   const [currentUser, setCurrentUser] = React.useState(false);
   const [openConfirmationModal, setOpenConfirmationModal] =
     React.useState(false);
-
+  const {
+    userData,
+    userData: { email },
+  } = useSelector((state) => state.initReducer);
   const { searchValue, users } = useSelector((state) => state.initReducer);
 
-  // const [data, setData] = React.useState([
-  //   {
-  //     firstName: "Giannis",
-  //     lastName: "Fragoulis",
-  //     image: "url",
-  //     phone: "6989228933",
-  //     email: "giannis@gmail.com",
-  //     status: "active",
-  //     uniqueId: "password0!",
-  //   },
-  //   {
-  //     firstName: "Giannis",
-  //     lastName: "Fragoulis",
-  //     image: "url",
-  //     phone: "6989228933",
-  //     email: "giannis@gmail.com",
-  //     status: "inactive",
-  //     uniqueId: "password1!",
-  //   },
-  //   {
-  //     firstName: "Kostas",
-  //     lastName: "Papadopoylos",
-  //     image: "url",
-  //     phone: "6989228933",
-  //     email: "giannis@gmail.com",
-  //     status: "active",
-  //     uniqueId: "password2!",
-  //   },
-  //   // More users can be added here
-  // ]);
+  useEffect(() => {
+    // Fetch business data when component mounts or email changes
+    const fetchStaff = async () => {
+      try {
+        const response = await fetch(
+          `${BASE_URL}get-staff?adminEmail=${encodeURIComponent(email)}`,
+          {
+            method: "GET",
+          }
+        );
+        const data = await response.json();
+
+        if (response.ok) {
+          if (data.staff) {
+            dispatch(setStaff(data.staff));
+          } else {
+            // If no business data exists, you can set default values
+          }
+        } else {
+          toast.error(data.message || "Error fetching business data");
+        }
+      } catch (error) {
+        toast.error("Error fetching business data");
+        console.error("Error fetching business data:", error);
+      }
+    };
+
+    email && users?.length === 0 && fetchStaff();
+  }, [email, dispatch]);
 
   const filteredData =
     searchValue === ""
@@ -92,18 +102,94 @@ const Tables = () => {
           item.fullName?.toLowerCase().includes(searchValue?.toLowerCase())
         );
 
-  const handleRemoveUser = (uniqueId) => {
-    dispatch(removeUser(uniqueId));
-    setCurrentUser(null);
+  const handleRemoveUser = async (email) => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}delete-staff?adminEmail=${encodeURIComponent(email)}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        dispatch(removeUser(email));
+        setCurrentUser(null);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {}
   };
 
-  const toggleUserStatus = (uniqueId) => {
-    dispatch(updateUserStatus(uniqueId));
+  const toggleUserStatus = async (email, status) => {
+    try {
+      const response = await fetch(
+        `${BASE_URL}update-staff-status?email=${encodeURIComponent(
+          email
+        )}&status=${encodeURIComponent(
+          status == "active" ? "inactive" : "active"
+        )}`,
+        {
+          method: "PUT",
+        }
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        dispatch(updateUserStatus(email));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {}
   };
 
-  const onAddUser = (user) => {
-    dispatch(addUser(user));
+  const onAddUser = async (user) => {
+    try {
+      const response = await fetch(BASE_URL + "add-staff", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...user, adminEmail: email, status: "active" }),
+      });
+
+      if (!response.ok) {
+        const errorMessage = await response.json();
+
+        toast.error("Error adding user: " + errorMessage.message);
+        return;
+      }
+      const data = await response.json();
+
+      dispatch(addUser({ ...user, avatar: data.avatarFilePath }));
+    } catch (error) {
+      toast.error("Error adding user: " + error.message);
+    }
   };
+  const onEditUser = async (user) => {
+    try {
+      const response = await fetch(BASE_URL + "update-staff", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user }),
+      });
+
+      if (!response.ok) {
+        const errorMessage = await response.json();
+
+        toast.error("Error adding user: " + errorMessage.message);
+        return;
+      }
+      const data = await response.json();
+
+      dispatch(editUser({ ...user, avatar: data.avatarFilePath }));
+    } catch (error) {
+      toast.error("Error adding user: " + error.message);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -149,6 +235,7 @@ const Tables = () => {
                 <tbody>
                   {filteredData?.length > 0 ? (
                     filteredData?.map((item) => {
+                      console.log(JSON.stringify(item));
                       return (
                         <tr>
                           <th scope="row">
@@ -157,18 +244,25 @@ const Tables = () => {
                                 className="avatar rounded-circle mr-3"
                                 href="#pablo"
                                 onClick={(e) => e.preventDefault()}
+                                style={{ width: "70px", height: "70px" }}
                               >
                                 <img
                                   alt="..."
+                                  style={{ width: "70px", height: "70px" }}
                                   src={
-                                    item?.image ||
-                                    require("../../assets/img/theme/bootstrap.jpg")
+                                    item?.avatar
+                                      ? `${BASE_URL}${
+                                          item?.avatar
+                                        }?t=${new Date().getTime()}`
+                                      : require("../../assets/img/theme/bootstrap.jpg")
                                   }
                                 />
                               </a>
                               <Media>
                                 <span className="mb-0 text-sm">
-                                  {item.firstName + " " + item.lastName}
+                                  {item?.firstName
+                                    ? item.firstName + " " + item.lastName
+                                    : item?.name + " " + item.surname}
                                 </span>
                               </Media>
                             </Media>
@@ -204,7 +298,7 @@ const Tables = () => {
                               style={{}}
                               className="badge-dot mr-4"
                             >
-                              {item.uniqueId}
+                              {item.groupId}
                             </Badge>
                           </td>
 
@@ -247,7 +341,7 @@ const Tables = () => {
                                 <DropdownItem
                                   href="#pablo"
                                   onClick={(e) =>
-                                    toggleUserStatus(item.uniqueId)
+                                    toggleUserStatus(item.email, item.status)
                                   }
                                 >
                                   {item.status == "active"
@@ -287,10 +381,11 @@ const Tables = () => {
                     }}
                     open={open}
                     onSubmitUser={onAddUser}
+                    onEditUser={onEditUser}
                   />
 
                   <ConfirmationDialog
-                    onSubmit={() => handleRemoveUser(currentUser?.uniqueId)}
+                    onSubmit={() => handleRemoveUser(currentUser?.email)}
                     setOpenConfirmationModal={setOpenConfirmationModal}
                     openConfirmationModal={openConfirmationModal}
                   />

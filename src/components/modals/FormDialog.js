@@ -7,12 +7,39 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { FileUploader } from "react-drag-drop-files";
+import { BASE_URL } from "utils";
 
-export default function FormDialog({ open, setOpen, user, onSubmitUser }) {
+export default function FormDialog({
+  open,
+  setOpen,
+  user,
+  onSubmitUser,
+  onEditUser,
+}) {
   const [image, setImage] = React.useState(null);
   const [imageBase64, setImageBase64] = React.useState(null);
-  const [preview, setPreview] = React.useState(null);
+  const [preview, setPreview] = React.useState(
+    user?.avatar ? `${BASE_URL}${user?.avatar}?t=${new Date().getTime()}` : null
+  );
 
+  console.log(JSON.stringify(user) + "-------", BASE_URL + user?.avatar);
+  // State for form values, initialized with user data if available
+  const [firstName, setFirstName] = React.useState(user ? user.name : "");
+  const [lastName, setLastName] = React.useState(user ? user.surname : "");
+  const [email, setEmail] = React.useState(user ? user.email : "");
+  const [phone, setPhone] = React.useState(user ? user.phone : "");
+  const [groupId, setGroupId] = React.useState(user ? user.groupId : "");
+
+  React.useEffect(() => {
+    if (!user) return;
+    console.log(JSON.stringify(user));
+    setFirstName(user?.name || user?.firstName);
+    setLastName(user?.surname || user?.lastName);
+    setEmail(user?.email);
+    setPhone(user?.phone);
+    setGroupId(user?.groupId);
+    setPreview(BASE_URL + user?.avatar);
+  }, [user]);
   const convertImageToBase64 = async (file) => {
     return await new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -20,10 +47,11 @@ export default function FormDialog({ open, setOpen, user, onSubmitUser }) {
       reader.onload = () => {
         setImageBase64(reader.result);
         resolve();
-      }; // base64 encoded string
+      };
       reader.onerror = (error) => reject(error);
     });
   };
+
   const handleImageChange = (file) => {
     if (file) {
       console.log({ file });
@@ -38,6 +66,25 @@ export default function FormDialog({ open, setOpen, user, onSubmitUser }) {
     setImageBase64(null);
     setPreview(null);
     setOpen(false);
+    console.log({ user });
+  };
+
+  // Handle form submit
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const updatedUser = {
+      firstName,
+      lastName,
+      email,
+      phone,
+      groupId,
+      avatar: imageBase64 ? imageBase64 : undefined,
+    };
+
+    console.log(updatedUser);
+    user ? onEditUser(updatedUser) : onSubmitUser(updatedUser); // Pass the updated user data to parent component
+    handleClose();
   };
 
   return (
@@ -50,18 +97,7 @@ export default function FormDialog({ open, setOpen, user, onSubmitUser }) {
           onClose={handleClose}
           PaperProps={{
             component: "form",
-            onSubmit: (event) => {
-              event.preventDefault();
-              const formData = new FormData(event.currentTarget);
-              const formJson = Object.fromEntries(formData.entries());
-              const email = formJson.email;
-              console.log(formJson);
-              onSubmitUser({
-                ...formJson,
-                image: imageBase64 ? imageBase64 : undefined,
-              });
-              handleClose();
-            },
+            onSubmit: handleSubmit,
           }}
         >
           <DialogTitle>Στοιχεία χρήστη</DialogTitle>
@@ -78,7 +114,8 @@ export default function FormDialog({ open, setOpen, user, onSubmitUser }) {
               name="firstName"
               label="Όνομα"
               type="text"
-              value={user ? user.firstName : undefined}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)} // Update state on change
               fullWidth
             />
             <p />
@@ -90,7 +127,8 @@ export default function FormDialog({ open, setOpen, user, onSubmitUser }) {
               name="lastName"
               label="Επώνυμο"
               type="text"
-              value={user ? user.lastName : undefined}
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)} // Update state on change
               fullWidth
             />
             <p />
@@ -98,38 +136,37 @@ export default function FormDialog({ open, setOpen, user, onSubmitUser }) {
               autoFocus
               required
               margin="dense"
-              id="name"
+              id="email"
               name="email"
               label="Διεύθυνση Email"
-              value={user ? user.email : undefined}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)} // Update state on change
               type="email"
               fullWidth
             />
-
             <p />
-
             <TextField
               autoFocus
               required
               margin="dense"
-              id="name"
-              value={user ? user.phone : undefined}
+              id="phone"
               name="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)} // Update state on change
               label="Κινητό τηλέφωνο"
               type="phone"
               fullWidth
             />
-
             <p />
             <TextField
               autoFocus
               required
               margin="dense"
-              id="uniqueId"
-              name="uniqueId"
-              value={user ? user.uniqueId : undefined}
+              id="groupId"
+              name="groupId"
+              value={groupId}
+              onChange={(e) => setGroupId(e.target.value)} // Update state on change
               label="Group id"
-              type="uniqueId"
               fullWidth
             />
             <p />
@@ -145,7 +182,6 @@ export default function FormDialog({ open, setOpen, user, onSubmitUser }) {
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-
                     width: "445%", // Ensures the div takes up available width
                   }}
                 >

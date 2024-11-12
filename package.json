@@ -67,6 +67,7 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^10.0.6",
     "reactstrap": "8.10.0",
+    "redux-persist": "^6.0.0",
     "sass": "1.69.5"
   },
   "devDependencies": {

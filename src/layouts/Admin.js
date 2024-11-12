@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React from "react";
+import React, { useEffect } from "react";
 import {
   useLocation,
   Route,
@@ -31,7 +31,8 @@ import AdminFooter from "components/Footers/AdminFooter.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
 
 import routesSideBar from "routesSideBar.js";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../redux/initSlice";
 
 const Admin = (props) => {
   const mainContent = React.useRef(null);
@@ -40,7 +41,7 @@ const Admin = (props) => {
   const { userData } = useSelector((state) => state.initReducer);
 
   React.useEffect(() => {
-    if (!userData?.email) {
+    if (!userData) {
       navigate("/");
     }
   }, [userData, navigate]);
@@ -75,6 +76,12 @@ const Admin = (props) => {
     }
     return "Brand";
   };
+  const dispatch = useDispatch();
+  const handleLogout = () => {
+    dispatch(logout());
+    // Redirect to login page after logout
+    navigate("/auth/login");
+  };
 
   return (
     <>
@@ -94,6 +101,7 @@ const Admin = (props) => {
         />
         <Routes>
           {getRoutes(routesSideBar)}
+          <Route path="/auth/logout" element={<Navigate to="/auth/login" />} />
           <Route path="*" element={<Navigate to="/admin/index" replace />} />
         </Routes>
         <Container fluid>

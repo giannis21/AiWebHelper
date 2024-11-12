@@ -57,7 +57,6 @@ const Profile = () => {
     userData: { email, imageUrl, imageBase64 },
   } = useSelector((state) => state.initReducer);
 
-  console.log({ userData });
   useEffect(() => {
     // Fetch business data when component mounts or email changes
     const fetchBusinessData = async () => {

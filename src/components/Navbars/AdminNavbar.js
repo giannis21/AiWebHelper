@@ -38,10 +38,13 @@ import { setSearchValue } from "../../redux/initSlice";
 import { BASE_URL } from "utils";
 
 const AdminNavbar = (props) => {
-  const {
-    userData,
-    userData: { firstName, lastName, imageBase64, imageUrl },
-  } = useSelector((state) => state.initReducer);
+  const { userData } = useSelector((state) => state.initReducer);
+
+  // Use optional chaining to safely access properties of userData
+  const firstName = userData?.firstName || "";
+  const lastName = userData?.lastName || "";
+  const imageBase64 = userData?.imageBase64 || "";
+  const imageUrl = userData?.imageUrl || "";
 
   const dispatch = useDispatch();
   return (

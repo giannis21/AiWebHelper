@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom"; // Import NavLink and useNavigate
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   Button,
   Card,
@@ -12,19 +12,24 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { BASE_URL } from "utils"; // Your API base URL
-import { regex } from "Regex";
+import { BASE_URL } from "utils";
 import { useDispatch } from "react-redux";
-import { setUserData } from "../../redux/initSlice";
+import { logout, setUserData } from "../../redux/initSlice";
 
 const Login = () => {
-  const [email, setEmail] = useState(""); // Email state
-  const [password, setPassword] = useState(""); // Password state
+  const [email, setEmail] = useState("giannisfragoulis21@gmail.com"); // Email state
+  const [password, setPassword] = useState("kali1"); // Password state
   const [loading, setLoading] = useState(false); // Loading state for submit button
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const navigate = useNavigate(); // Use navigate hook to programmatically redirect
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(logout());
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(email, password);
@@ -104,11 +109,22 @@ const Login = () => {
                   </InputGroupAddon>
                   <Input
                     placeholder="Κωδικός"
-                    type="password"
+                    type={showPassword ? "text" : "password"} // Toggle password visibility
                     autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  <InputGroupAddon addonType="append">
+                    <InputGroupText
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      <i
+                        className={
+                          showPassword ? "fa fa-eye-slash" : "fa fa-eye"
+                        }
+                      />
+                    </InputGroupText>
+                  </InputGroupAddon>
                 </InputGroup>
               </FormGroup>
               <div className="custom-control custom-control-alternative custom-checkbox">

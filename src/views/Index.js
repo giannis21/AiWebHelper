@@ -1,96 +1,126 @@
-/*!
-
-=========================================================
-* Argon Dashboard React - v1.2.4
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/argon-dashboard-react
-* Copyright 2024 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/argon-dashboard-react/blob/master/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-// reactstrap components
+import React, { useEffect, useRef } from "react";
 import {
   Badge,
   Card,
   CardHeader,
-  CardFooter,
-  DropdownMenu,
-  DropdownItem,
-  UncontrolledDropdown,
-  DropdownToggle,
-  Media,
-  Pagination,
-  PaginationItem,
-  PaginationLink,
-  Progress,
   Table,
   Container,
   Row,
-  UncontrolledTooltip,
-  Col,
+  Media,
   Button,
 } from "reactstrap";
-// core components
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addFile,
+  addUser,
+  removeUser,
+  setFilesUploaded,
+  updateUserStatus,
+} from "../redux/initSlice";
+import { BASE_URL } from "utils";
+import { toast } from "react-toastify";
 import Header from "components/Headers/Header.js";
 import FormDialog from "components/modals/FormDialog";
-import React, { useEffect } from "react";
 import ConfirmationDialog from "components/modals/ConfirmationDialog";
-import { useDispatch, useSelector } from "react-redux";
-import { addUser, removeUser, updateUserStatus } from "../redux/initSlice";
 
 const Tables = () => {
   const dispatch = useDispatch();
+  const { userData = {}, filesUploaded: uploadedFiles = [] } = useSelector(
+    (state) => state.initReducer || {} // Default to an empty object if state.initReducer is undefined
+  );
+
+  const fetchCalled = useRef(false);
+  useEffect(() => {
+    // Ensure the fetch happens only once
+    if (userData?.email && uploadedFiles?.length == 0) {
+      fetchCalled.current = true; // Set the ref to true to prevent further fetch calls
+      console.log("Fetching files...");
+
+      // Fetch business data when component mounts or email changes
+      const getFiles = async () => {
+        try {
+          const response = await fetch(
+            `${BASE_URL}api/files?email=${encodeURIComponent(userData?.email)}`,
+            {
+              method: "GET",
+            }
+          );
+          const data = await response.json();
+
+          if (response.ok) {
+            if (data.files) {
+              dispatch(setFilesUploaded(data.files));
+            } else {
+              // If no business data exists, you can set default values
+            }
+          } else {
+            toast.error(data.message || "Error fetching business data");
+          }
+        } catch (error) {
+          toast.error("Error fetching business data");
+          console.error("Error fetching business data:", error);
+        }
+      };
+
+      getFiles();
+    }
+  }, [userData?.email, dispatch]);
+
+  const fileInputRef = useRef(null);
   const [open, setOpen] = React.useState(false);
   const [currentUser, setCurrentUser] = React.useState(false);
   const [openConfirmationModal, setOpenConfirmationModal] =
     React.useState(false);
+  const [selectedFile, setSelectedFile] = React.useState(null);
 
-  const { searchValue, users } = useSelector((state) => state.initReducer);
+  // State for uploaded files
 
-  // const [data, setData] = React.useState([
-  //   {
-  //     firstName: "Giannis",
-  //     lastName: "Fragoulis",
-  //     image: "url",
-  //     phone: "6989228933",
-  //     email: "giannis@gmail.com",
-  //     status: "active",
-  //     uniqueId: "password0!",
-  //   },
-  //   {
-  //     firstName: "Giannis",
-  //     lastName: "Fragoulis",
-  //     image: "url",
-  //     phone: "6989228933",
-  //     email: "giannis@gmail.com",
-  //     status: "inactive",
-  //     uniqueId: "password1!",
-  //   },
-  //   {
-  //     firstName: "Kostas",
-  //     lastName: "Papadopoylos",
-  //     image: "url",
-  //     phone: "6989228933",
-  //     email: "giannis@gmail.com",
-  //     status: "active",
-  //     uniqueId: "password2!",
-  //   },
-  //   // More users can be added here
-  // ]);
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      handleSubmit(file); // Call handleSubmit directly with the file
+    }
+  };
 
-  const filteredData =
-    searchValue === ""
-      ? users
-      : users.filter((item) =>
-          item.fullName?.toLowerCase().includes(searchValue?.toLowerCase())
-        );
+  const handleSubmit = async (file) => {
+    if (!file) {
+      alert("Please select a PDF file to upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("pdfFile", file);
+    formData.append("groupId", "123"); // Replace with actual groupId as needed
+
+    try {
+      const response = await fetch(
+        BASE_URL + `upload-pdf?email=${userData?.email}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorMessage = await response.json();
+        toast.error("Error uploading PDF: " + errorMessage.message);
+        return;
+      }
+
+      const result = await response.json();
+      toast.success(result.message);
+
+      // Add the uploaded file's name to the uploadedFiles state
+      dispatch(addFile({ name: file.name, url: result.filePath }));
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Error uploading PDF:", error);
+      alert("Failed to upload PDF");
+    }
+  };
 
   const handleRemoveUser = (uniqueId) => {
     dispatch(removeUser(uniqueId));
@@ -104,12 +134,13 @@ const Tables = () => {
   const onAddUser = (user) => {
     dispatch(addUser(user));
   };
+
+  console.log({ uploadedFiles });
   return (
     <>
       <Header />
       {/* Page content */}
       <Container className="mt--7" fluid>
-        {/* Table */}
         <Row>
           <div className="col">
             <Card className="shadow">
@@ -124,155 +155,56 @@ const Tables = () => {
               >
                 <h3 className="mb-0">Προσθήκη αρχείων</h3>
                 <div style={{ width: "14px" }} />
-                <Col className="text-right" xs="4">
-                  <Button
-                    onClick={() => setOpen(true)}
-                    color="primary"
-                    href="#pablo"
-                    size="sm"
-                  >
-                    {"Προσθήκη αρχείου"}
-                  </Button>
-                </Col>
+                <form className="text-right" xs="4" onSubmit={handleSubmit}>
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    accept="application/pdf"
+                    ref={fileInputRef}
+                  />
+                </form>
               </CardHeader>
               <Table className="align-items-center table-flush" responsive>
                 <thead className="thead-light">
                   <tr>
-                    <th scope="col">Αρχεία (pdf,word,text)</th>
+                    <th scope="col">Αρχεία</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredData?.length > 0 ? (
-                    filteredData?.map((item) => {
-                      return (
-                        <tr>
-                          <th scope="row">
-                            <Media className="align-items-center">
+                  {uploadedFiles.length > 0 ? (
+                    uploadedFiles.map((fileName, index) => (
+                      <tr key={index}>
+                        <td>
+                          <div
+                            style={{ flexDirection: "row", display: "flex" }}
+                          >
+                            <Media>
                               <a
-                                className="avatar rounded-circle mr-3"
-                                href="#pablo"
-                                onClick={(e) => e.preventDefault()}
+                                href={BASE_URL + fileName.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
                               >
                                 <img
                                   alt="..."
-                                  src={
-                                    item?.image ||
-                                    require("../assets/img/theme/bootstrap.jpg")
-                                  }
+                                  style={{ width: "40px", height: "40px" }}
+                                  src={require("../assets/img/theme/pdf.png")}
                                 />
-                              </a>
-                              <Media>
+
                                 <span className="mb-0 text-sm">
-                                  {item.firstName + " " + item.lastName}
+                                  {`  ${fileName?.name}`}
                                 </span>
-                              </Media>
+                              </a>
                             </Media>
-                          </th>
-                          <td>{item?.phone}</td>
-                          <td>
-                            <Badge color="" className="badge-dot mr-4">
-                              {item.email}
-                            </Badge>
-                          </td>
-                          <td>
-                            <Badge
-                              color={
-                                item.status == "active" ? "white" : "black"
-                              }
-                              style={{
-                                fontSize: "15px",
-                                fontWeight: "bold",
-                                backgroundColor:
-                                  item.status == "active"
-                                    ? "#12BDEF"
-                                    : "#e0dede",
-                                padding: "6px",
-                              }}
-                              className="badge-dot mr-4"
-                            >
-                              {item.status}
-                            </Badge>
-                          </td>
-                          <td>
-                            <Badge
-                              color="black"
-                              style={{}}
-                              className="badge-dot mr-4"
-                            >
-                              {item.uniqueId}
-                            </Badge>
-                          </td>
-
-                          <td className="text-right">
-                            <UncontrolledDropdown>
-                              <DropdownToggle
-                                className="btn-icon-only text-light"
-                                href="#pablo"
-                                role="button"
-                                size="large"
-                                color="black"
-                              >
-                                <i
-                                  style={{ color: "black" }}
-                                  className="fas fa-ellipsis-v"
-                                />
-                              </DropdownToggle>
-                              <DropdownMenu
-                                className="dropdown-menu-arrow"
-                                right
-                              >
-                                <DropdownItem
-                                  href="#pablo"
-                                  onClick={(e) => {
-                                    setCurrentUser(item);
-                                    setOpen(true);
-                                  }}
-                                >
-                                  Επεξεργασία χρήστη
-                                </DropdownItem>
-                                <DropdownItem
-                                  href="#pablo"
-                                  onClick={(e) => {
-                                    setCurrentUser(item);
-                                    setOpenConfirmationModal(true);
-                                  }}
-                                >
-                                  Αφαίρεση χρήστη
-                                </DropdownItem>
-                                <DropdownItem
-                                  href="#pablo"
-                                  onClick={(e) =>
-                                    toggleUserStatus(item.uniqueId)
-                                  }
-                                >
-                                  {item.status == "active"
-                                    ? "Απενεργοποίηση πρόσβασης"
-                                    : "Ενεργοποίηση πρόσβασης"}
-                                </DropdownItem>
-                              </DropdownMenu>
-                            </UncontrolledDropdown>
-                          </td>
-                        </tr>
-                      );
-                    })
+                          </div>
+                        </td>
+                      </tr>
+                    ))
                   ) : (
-                    <div
-                      style={{
-                        justifyContent: "center",
-                        width: "250%",
-
-                        display: "flex",
-                      }}
-                      className="text-center"
-                    >
-                      <div style={{ height: 200 }} />
-
-                      <p style={{ alignSelf: "center" }}>
-                        Δώσε πρόσβαση στους εργαζομένους και αύξησε την
-                        <br />
-                        παραγωγικότητα της δουλείας σου!!
-                      </p>
-                    </div>
+                    <tr>
+                      <td className="text-center">
+                        Δεν υπάρχει κανένα αρχείο.
+                      </td>
+                    </tr>
                   )}
                   <FormDialog
                     user={currentUser}
@@ -283,7 +215,6 @@ const Tables = () => {
                     open={open}
                     onSubmitUser={onAddUser}
                   />
-
                   <ConfirmationDialog
                     onSubmit={() => handleRemoveUser(currentUser?.uniqueId)}
                     setOpenConfirmationModal={setOpenConfirmationModal}
@@ -291,58 +222,6 @@ const Tables = () => {
                   />
                 </tbody>
               </Table>
-              {/* <CardFooter className="py-4">
-                <nav aria-label="...">
-                  <Pagination
-                    className="pagination justify-content-end mb-0"
-                    listClassName="justify-content-end mb-0"
-                  >
-                    <PaginationItem className="disabled">
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={(e) => e.preventDefault()}
-                        tabIndex="-1"
-                      >
-                        <i className="fas fa-angle-left" />
-                        <span className="sr-only">Previous</span>
-                      </PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem className="active">
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        1
-                      </PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        2 <span className="sr-only">(current)</span>
-                      </PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        3
-                      </PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        <i className="fas fa-angle-right" />
-                        <span className="sr-only">Next</span>
-                      </PaginationLink>
-                    </PaginationItem>
-                  </Pagination>
-                </nav>
-              </CardFooter> */}
             </Card>
           </div>
         </Row>

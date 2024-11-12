@@ -16,10 +16,26 @@ export const initSlice = createSlice({
     },
     searchValue: "",
     users: [],
+    filesUploaded: [],
   },
   reducers: {
+    logout: (state) => {
+      console.log("logout called");
+      state.userData = null;
+      state.filesUploaded = [];
+      state.users = [];
+    },
     setUserData: (state, action) => {
       state.userData = action.payload;
+    },
+    setFilesUploaded: (state, action) => {
+      state.filesUploaded = action.payload;
+    },
+    addFile: (state, action) => {
+      state.filesUploaded = [...state.filesUploaded, action.payload];
+    },
+    setStaff: (state, action) => {
+      state.users = action.payload;
     },
     setNewImage: (state, action) => {
       state.userData = {
@@ -36,13 +52,17 @@ export const initSlice = createSlice({
       state.users = [...state.users, { ...user, status: "active" }];
     },
     removeUser: (state, action) => {
-      state.users = state.users.filter(
-        (user) => user.uniqueId !== action.payload
-      );
+      state.users = state.users.filter((user) => user.email !== action.payload);
+    },
+    editUser: (state, action) => {
+      // The payload should contain the fields to update, e.g., { firstName: "John", lastName: "Doe" }
+      state.users = state.users.map((item) => {
+        return item.email == action.payload.email ? action.payload : item;
+      });
     },
     updateUserStatus: (state, action) => {
       state.users = state.users.map((user) =>
-        user.uniqueId === action.payload
+        user.email === action.payload
           ? {
               ...user,
               status: user.status === "active" ? "inactive" : "active",
@@ -88,6 +108,7 @@ export const initSlice = createSlice({
 
 export const {
   setUserData,
+  setFilesUploaded,
   setAboutBusiness,
   setPhone,
   setEmail,
@@ -104,6 +125,10 @@ export const {
   removeUser,
   updateUserStatus,
   setNewImage,
+  setStaff,
+  editUser,
+  addFile,
+  logout,
 } = initSlice.actions;
 
 export default initSlice.reducer;
