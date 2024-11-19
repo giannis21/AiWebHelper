@@ -183,7 +183,7 @@ const Tables = () => {
         return;
       }
       const data = await response.json();
-
+      console.log({ data: data.avatarFilePath });
       dispatch(editUser({ ...user, avatar: data.avatarFilePath }));
     } catch (error) {
       toast.error("Error adding user: " + error.message);
@@ -235,7 +235,9 @@ const Tables = () => {
                 <tbody>
                   {filteredData?.length > 0 ? (
                     filteredData?.map((item) => {
-                      console.log(JSON.stringify(item));
+                      console.log(
+                        `${BASE_URL}${item?.avatar}?t=${new Date().getTime()}`
+                      );
                       return (
                         <tr>
                           <th scope="row">

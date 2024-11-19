@@ -38,8 +38,10 @@ const Admin = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { userData } = useSelector((state) => state.initReducer);
 
+  const { userData = {} } = useSelector(
+    (state) => state.initReducer || {} // Default to an empty object if state.initReducer is undefined
+  );
   React.useEffect(() => {
     if (!userData) {
       navigate("/");

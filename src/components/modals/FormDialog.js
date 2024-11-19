@@ -79,7 +79,8 @@ export default function FormDialog({
       email,
       phone,
       groupId,
-      avatar: imageBase64 ? imageBase64 : undefined,
+      imageBase64,
+      avatar: user?.avatar ? user?.avatar : undefined,
     };
 
     console.log(updatedUser);
@@ -135,6 +136,7 @@ export default function FormDialog({
             <TextField
               autoFocus
               required
+              disabled
               margin="dense"
               id="email"
               name="email"

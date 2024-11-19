@@ -17,7 +17,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <Provider store={reduxStore}>
-    <PersistGate loading={null} persistor={persistor}>
+    <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
       <BrowserRouter>
         <Routes>
           {/* Authentication layout */}

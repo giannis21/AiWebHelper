@@ -177,6 +177,10 @@ const Profile = () => {
                       <a href="#pablo" onClick={(e) => e.preventDefault()}>
                         <img
                           alt="..."
+                          style={{
+                            width: "200px",
+                            height: "180px",
+                          }}
                           className="rounded-circle"
                           src={`${
                             imageBase64 ? imageBase64 : `${BASE_URL}${imageUrl}`

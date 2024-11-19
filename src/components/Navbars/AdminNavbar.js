@@ -82,8 +82,12 @@ const AdminNavbar = (props) => {
             <UncontrolledDropdown nav>
               <DropdownToggle className="pr-0" nav>
                 <Media className="align-items-center">
-                  <span className="avatar avatar-sm rounded-circle">
+                  <span
+                    style={{ width: 50, height: 50 }}
+                    className="avatar avatar-sm rounded-circle"
+                  >
                     <img
+                      style={{ width: 50, height: 50 }}
                       alt="..."
                       src={`${
                         imageBase64 ? imageBase64 : `${BASE_URL}${imageUrl}`

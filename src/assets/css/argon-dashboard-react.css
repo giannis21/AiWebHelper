@@ -13893,6 +13893,9 @@ button.bg-darker:focus {
 .text-white {
   color: #fff !important;
 }
+.text-black {
+  color: #000 !important;
+}
 
 .text-primary {
   color: #5e72e4 !important;

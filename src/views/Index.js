@@ -22,6 +22,7 @@ import { toast } from "react-toastify";
 import Header from "components/Headers/Header.js";
 import FormDialog from "components/modals/FormDialog";
 import ConfirmationDialog from "components/modals/ConfirmationDialog";
+import { Navigate } from "react-router-dom";
 
 const Tables = () => {
   const dispatch = useDispatch();
@@ -29,11 +30,40 @@ const Tables = () => {
     (state) => state.initReducer || {} // Default to an empty object if state.initReducer is undefined
   );
 
-  const fetchCalled = useRef(false);
+  const handleGetOpenAIResponse = async (e) => {
+    try {
+      const res = await fetch(BASE_URL + "get-openAI-response", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          staffEmail: "giannisfragoulis21@gmail.com",
+          question: "Πως να βγαλω λεφτα απο την εφαρμογη? απαντα συντομα",
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error(`Error: ${errorData.error}`);
+        return;
+      }
+
+      const data = await res.json();
+      console.log(data.response);
+      toast.success("OpenAI response received!", data.response);
+    } catch (error) {
+      console.error("Error fetching OpenAI response:", error);
+      toast.error("Failed to get response from server.");
+    }
+  };
+  useEffect(() => {
+    // handleGetOpenAIResponse();
+  }, []);
+
   useEffect(() => {
     // Ensure the fetch happens only once
     if (userData?.email && uploadedFiles?.length == 0) {
-      fetchCalled.current = true; // Set the ref to true to prevent further fetch calls
       console.log("Fetching files...");
 
       // Fetch business data when component mounts or email changes
@@ -80,6 +110,34 @@ const Tables = () => {
     if (file) {
       setSelectedFile(file);
       handleSubmit(file); // Call handleSubmit directly with the file
+    }
+  };
+
+  const handleDeleteFile = async (fileName) => {
+    if (!userData?.email) return;
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}delete-file?email=${encodeURIComponent(
+          userData.email
+        )}&fileName=${encodeURIComponent(fileName)}`,
+        { method: "DELETE" }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(data.message);
+        dispatch(
+          setFilesUploaded(
+            uploadedFiles.filter((file) => file.name !== fileName)
+          )
+        );
+      } else {
+        toast.error(data.message || "Error deleting file");
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      toast.error("Failed to delete file");
     }
   };
 
@@ -195,6 +253,14 @@ const Tables = () => {
                                 </span>
                               </a>
                             </Media>
+                            <Button
+                              color="danger"
+                              size="sm"
+                              onClick={() => handleDeleteFile(fileName.name)}
+                              style={{ marginLeft: "auto" }}
+                            >
+                              Διαγραφή
+                            </Button>
                           </div>
                         </td>
                       </tr>

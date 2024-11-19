@@ -61,13 +61,13 @@ const Auth = (props) => {
       <div className="main-content" ref={mainContent}>
         <AuthNavbar />
 
-        <div className="header bg-gradient-info py-7 py-lg-8">
+        <div style={{ backgroundColor: "white", paddingTop: 100 }}>
           <Container>
             <div className="header-body text-center mb-7">
               <Row className="justify-content-center">
                 <Col lg="5" md="6">
-                  <h1 className="text-white">Καλώς ήρθες!</h1>
-                  <p className="text-lead text-light">
+                  <h1 className="text-black">Καλώς ήρθες!</h1>
+                  <p className="text-lead text-black">
                     Δημιούργησε λογαριασμό για να αναβαθμίσεις τον τρόπο που
                     λειτουργεί η επιχείρηση σου!
                   </p>
@@ -75,7 +75,7 @@ const Auth = (props) => {
               </Row>
             </div>
           </Container>
-          <div className="separator separator-bottom separator-skew zindex-100">
+          <div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               preserveAspectRatio="none"
