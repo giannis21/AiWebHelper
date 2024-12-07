@@ -146,9 +146,29 @@ const Tables = () => {
       alert("Please select a PDF file to upload.");
       return;
     }
+    const isPdf = file.type === "application/pdf";
+
+    const fileType = file.type;
 
     const formData = new FormData();
-    formData.append("pdfFile", file);
+
+    console.log({ fileType });
+    if (fileType === "application/pdf") {
+      formData.append("pdfFile", file);
+    } else if (fileType === "text/plain") {
+      formData.append("textFile", file);
+    } else if (
+      fileType === "application/msword" ||
+      fileType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      formData.append("docFile", file);
+    } else {
+      toast.error(
+        "Unsupported file type. Please upload a PDF, TXT, or DOC file."
+      );
+      return;
+    }
     formData.append("groupId", "123"); // Replace with actual groupId as needed
 
     try {
@@ -176,7 +196,7 @@ const Tables = () => {
       }
     } catch (error) {
       console.error("Error uploading PDF:", error);
-      alert("Failed to upload PDF");
+      alert("Failed to upload file");
     }
   };
 
@@ -217,7 +237,7 @@ const Tables = () => {
                   <input
                     type="file"
                     onChange={handleFileChange}
-                    accept="application/pdf"
+                    accept="application/pdf, text/plain, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     ref={fileInputRef}
                   />
                 </form>
@@ -245,7 +265,11 @@ const Tables = () => {
                                 <img
                                   alt="..."
                                   style={{ width: "40px", height: "40px" }}
-                                  src={require("../assets/img/theme/pdf.png")}
+                                  src={require(fileName.name.endsWith(".pdf")
+                                    ? "../assets/img/theme/pdf.png"
+                                    : fileName.name.endsWith(".txt")
+                                    ? "../assets/img/theme/txt.png"
+                                    : "../assets/img/theme/doc.png")}
                                 />
 
                                 <span className="mb-0 text-sm">

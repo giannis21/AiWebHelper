@@ -79,12 +79,12 @@ const Login = () => {
     <>
       <Col lg="5" md="7">
         <Card className="bg-secondary shadow border-0">
-          <CardBody className="px-lg-5 py-lg-5">
+          <CardBody className="px-lg-5 py-lg-5 custom-shadow">
             <div className="text-center text-muted mb-4">
               <small>Συνδέσου με email και κωδικό</small>
             </div>
             <Form role="form" onSubmit={handleSubmit}>
-              <FormGroup className="mb-3">
+              <FormGroup className="mb-3 custom-shadow">
                 <InputGroup className="input-group-alternative">
                   <InputGroupAddon addonType="prepend">
                     <InputGroupText>
@@ -127,7 +127,7 @@ const Login = () => {
                   </InputGroupAddon>
                 </InputGroup>
               </FormGroup>
-              <div className="custom-control custom-control-alternative custom-checkbox">
+              {/* <div className="custom-control custom-control-alternative custom-checkbox">
                 <input
                   className="custom-control-input"
                   id="customCheckLogin"
@@ -139,7 +139,7 @@ const Login = () => {
                 >
                   <span className="text-muted">Θυμήσου με</span>
                 </label>
-              </div>
+              </div> */}
               <div className="text-center">
                 <Button
                   className="my-4"

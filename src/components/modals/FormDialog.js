@@ -8,6 +8,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { FileUploader } from "react-drag-drop-files";
 import { BASE_URL } from "utils";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function FormDialog({
   open,
@@ -16,6 +17,11 @@ export default function FormDialog({
   onSubmitUser,
   onEditUser,
 }) {
+  const {
+    userData,
+    userData: { email: adminEmail, phone: adminPhone },
+  } = useSelector((state) => state.initReducer);
+
   const [image, setImage] = React.useState(null);
   const [imageBase64, setImageBase64] = React.useState(null);
   const [preview, setPreview] = React.useState(
@@ -31,15 +37,24 @@ export default function FormDialog({
   const [groupId, setGroupId] = React.useState(user ? user.groupId : "");
 
   React.useEffect(() => {
-    if (!user) return;
-    console.log(JSON.stringify(user));
+    if (!user) {
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPhone("");
+      setGroupId("");
+      setPreview("");
+      setImageBase64(null);
+      return;
+    }
     setFirstName(user?.name || user?.firstName);
     setLastName(user?.surname || user?.lastName);
     setEmail(user?.email);
     setPhone(user?.phone);
-    setGroupId(user?.groupId);
+    setGroupId(user?.groupId || user?.uniqueId);
     setPreview(BASE_URL + user?.avatar);
   }, [user]);
+
   const convertImageToBase64 = async (file) => {
     return await new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -78,12 +93,12 @@ export default function FormDialog({
       lastName,
       email,
       phone,
-      groupId,
+      uniqueId: groupId, //: adminEmail + "-" + adminPhone,
+      status: user?.status,
       imageBase64,
       avatar: user?.avatar ? user?.avatar : undefined,
     };
 
-    console.log(updatedUser);
     user ? onEditUser(updatedUser) : onSubmitUser(updatedUser); // Pass the updated user data to parent component
     handleClose();
   };
@@ -136,7 +151,7 @@ export default function FormDialog({
             <TextField
               autoFocus
               required
-              disabled
+              disabled={user}
               margin="dense"
               id="email"
               name="email"

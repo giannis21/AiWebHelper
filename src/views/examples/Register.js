@@ -113,7 +113,7 @@ const Register = () => {
       }
     } catch (error) {
       console.error("Error during registration:", error);
-      toast.error("An error occurred.");
+      toast.error("An error occurred.", error);
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ const Register = () => {
     <>
       <Col lg="6" md="8">
         <Card className="bg-secondary shadow border-0">
-          <CardBody className="px-lg-5 py-lg-5">
+          <CardBody className="px-lg-5 py-lg-5 custom-shadow">
             <div className="text-center text-muted mb-4">
               <small>Πρόσθεσε τα παρακάτω στοιχεία για την εγγραφή σου</small>
             </div>
@@ -219,7 +219,15 @@ const Register = () => {
                   <div className="text-danger">{passwordError}</div>
                 )}
               </FormGroup>
-              <FormGroup className="mb-4">
+              <FormGroup
+                style={{
+                  width: "100%",
+                  display: "flex",
+
+                  justifyContent: "center",
+                }}
+                className="mb-4"
+              >
                 <FileUploader
                   handleChange={handleImageChange}
                   name="file"
@@ -254,22 +262,24 @@ const Register = () => {
                   )}
                 </FileUploader>
               </FormGroup>
-              <div className="text-muted font-italic">
-                <small>
-                  Ισχύς κωδικού:{" "}
-                  <span
-                    className={`font-weight-700 ${
-                      passwordStrength === "strong"
-                        ? "text-success"
-                        : passwordStrength === "medium"
-                        ? "text-warning"
-                        : "text-danger"
-                    }`}
-                  >
-                    {passwordStrength}
-                  </span>
-                </small>
-              </div>
+              {password?.length > 0 && (
+                <div className="text-muted font-italic">
+                  <small>
+                    Ισχύς κωδικού:{" "}
+                    <span
+                      className={`font-weight-700 ${
+                        passwordStrength === "strong"
+                          ? "text-success"
+                          : passwordStrength === "medium"
+                          ? "text-warning"
+                          : "text-danger"
+                      }`}
+                    >
+                      {passwordStrength}
+                    </span>
+                  </small>
+                </div>
+              )}
               <div className="text-center">
                 <Button
                   className="mt-4"

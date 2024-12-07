@@ -36,17 +36,21 @@ import {
 } from "reactstrap";
 import { setSearchValue } from "../../redux/initSlice";
 import { BASE_URL } from "utils";
-
+import { useNavigate } from "react-router-dom";
 const AdminNavbar = (props) => {
   const { userData } = useSelector((state) => state.initReducer);
-
   // Use optional chaining to safely access properties of userData
   const firstName = userData?.firstName || "";
   const lastName = userData?.lastName || "";
   const imageBase64 = userData?.imageBase64 || "";
   const imageUrl = userData?.imageUrl || "";
+  const navigate = useNavigate();
 
   const dispatch = useDispatch();
+  const handleLogout = () => {
+    navigate("/auth/login", { replace: true }); // Redirect to login page
+  };
+
   return (
     <>
       <Navbar className="navbar-top navbar-dark" expand="md" id="navbar-main">
@@ -111,7 +115,8 @@ const AdminNavbar = (props) => {
                 </DropdownItem>
 
                 <DropdownItem divider />
-                <DropdownItem to="/auth/login">
+
+                <DropdownItem onClick={handleLogout}>
                   <i className="ni ni-user-run" />
                   <span>Αποσύνδεση</span>
                 </DropdownItem>

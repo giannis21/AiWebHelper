@@ -105,7 +105,7 @@ const Tables = () => {
   const handleRemoveUser = async (email) => {
     try {
       const response = await fetch(
-        `${BASE_URL}delete-staff?adminEmail=${encodeURIComponent(email)}`,
+        `${BASE_URL}delete-staff?email=${encodeURIComponent(email)}`,
         {
           method: "DELETE",
         }
@@ -144,6 +144,7 @@ const Tables = () => {
   };
 
   const onAddUser = async (user) => {
+    console.log("added user ", user);
     try {
       const response = await fetch(BASE_URL + "add-staff", {
         method: "POST",
@@ -161,9 +162,9 @@ const Tables = () => {
       }
       const data = await response.json();
 
-      dispatch(addUser({ ...user, avatar: data.avatarFilePath }));
+      dispatch(addUser({ ...user, avatar: data?.avatarFilePath }));
     } catch (error) {
-      toast.error("Error adding user: " + error.message);
+      toast.error(error.message);
     }
   };
   const onEditUser = async (user) => {
@@ -300,7 +301,7 @@ const Tables = () => {
                               style={{}}
                               className="badge-dot mr-4"
                             >
-                              {item.groupId}
+                              {item?.groupId || item?.uniqueId}
                             </Badge>
                           </td>
 
@@ -378,6 +379,7 @@ const Tables = () => {
                   <FormDialog
                     user={currentUser}
                     setOpen={(val) => {
+                      console.log({ currentUser });
                       setCurrentUser(null);
                       setOpen(val);
                     }}
